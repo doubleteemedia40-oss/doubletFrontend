@@ -16,6 +16,8 @@ const ManageProduct = () => {
     addProduct, updateProduct, products, isLoading 
   } = useStore();
   
+  const existing = id ? products.find(p => p.id === id) : undefined;
+  
   // State for form fields
   const [productName, setProductName] = useState(existing?.name || '');
   const [platform, setPlatform] = useState(() => {
@@ -123,8 +125,6 @@ const ManageProduct = () => {
       if (category === cat) setCategory('');
     }
   };
-
-  const existing = id ? products.find(p => p.id === id) : undefined;
   useEffect(() => {
     // reset local state when navigated to "create" page
     if (!id) {
