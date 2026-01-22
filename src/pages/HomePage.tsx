@@ -7,11 +7,12 @@ import ProductCard from '../components/ProductCard';
 import vpnLogo from '../assets/vpn.svg';
 import logsLogo from '../assets/logs.svg';
 import { useStore } from '../store/useStore';
+import SEO from '../components/SEO';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
-  const { products } = useStore();
+  const { products, user } = useStore();
   const featuredProducts = products.slice(0, 8);
   const heroRef = useRef(null);
 
@@ -105,6 +106,12 @@ const HomePage = () => {
 
   return (
     <div className="bg-[#0a0a0a] overflow-hidden">
+      <SEO
+        title="DoubleT — Premium Digital Accounts & Services"
+        description="Instant access to verified social media assets, ad accounts, and digital real estate."
+        canonicalPath="/"
+        type="website"
+      />
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen w-full border-b border-[#27353a] bg-[#0a0a0a] overflow-hidden flex items-center justify-center">
         {/* Animated Hue Background Gradient Orbs */}
@@ -145,6 +152,14 @@ const HomePage = () => {
                 <ShoppingBag size={20} />
                 Browse Products
               </Link>
+              {!user && (
+                <Link
+                  to="/register"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#00bfff] px-8 text-sm font-bold text-[#00bfff] transition-all duration-300 hover:bg-[#009acd] hover:text-white"
+                >
+                  Create Account
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import Button from '../components/Button';
 import { useToast } from '../context/useToast';
+import SEO from '../components/SEO';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,26 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SEO
+          title={`${product.name} — DoubleT`}
+          description={product.description}
+          canonicalPath={`/product/${product.id}`}
+          type="product"
+          jsonLd={{
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: product.name,
+            description: product.description,
+            sku: product.id,
+            category: product.category,
+            offers: {
+              '@type': 'Offer',
+              priceCurrency: 'NGN',
+              price: product.price,
+              availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            },
+          }}
+        />
         <div className="mb-8 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <button onClick={() => navigate('/')} className="hover:text-[#00bfff] dark:hover:text-[#00bfff]">Home</button>
           <span>/</span>

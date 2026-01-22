@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronRight, ChevronDown, Bold, Italic, List, Globe, Plus, X, Save } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useStore } from '../store/useStore';
@@ -125,23 +125,7 @@ const ManageProduct = () => {
       if (category === cat) setCategory('');
     }
   };
-  useEffect(() => {
-    // reset local state when navigated to "create" page
-    if (!id) {
-      setProductName('');
-      setCategory('');
-      setDescription('');
-      setBasePrice('');
-      setStockQuantity('10');
-      setPlatform('');
-      setRegion('Global (Worldwide)');
-      setAccountAge('');
-      setFollowersCount('');
-      setUseAge(false);
-      setUseFollowers(false);
-      setFeatures(['Email Verified', 'Instant Delivery']);
-    }
-  }, [id]);
+  // Initializers above already derive from 'existing'; no need to reset state in an effect
 
   const handleSave = async () => {
     if (!productName || !basePrice || !category) {

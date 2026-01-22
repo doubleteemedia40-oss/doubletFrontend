@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/useTheme';
 import { useStore } from '../store/useStore';
-import { ShoppingCart, User, Moon, Sun, Menu, X, ChevronRight, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Moon, Sun, Menu, X, ChevronRight, ExternalLink } from 'lucide-react';
 
 const Navbar = () => {
   const { isDark, toggleTheme } = useTheme();
-  const { cartItems, user } = useStore();
+  const { cartItems, user, logout } = useStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [bump, setBump] = useState(false);
   const location = useLocation();
@@ -26,10 +26,7 @@ const Navbar = () => {
     return () => window.removeEventListener('app:cart-bump', handler as EventListener);
   }, []);
 
-  const getDashboardLink = () => {
-    if (!user) return '/login';
-    return user.isAdmin ? '/admin/dashboard' : '/order-history';
-  };
+  // Dashboard link not needed with explicit Login/Logout buttons
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -90,16 +87,24 @@ const Navbar = () => {
             )}
           </Link>
 
-          {/* Account */}
-          <Link
-            to={getDashboardLink()}
-            className={`hidden sm:flex size-10 items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] transition-colors hover:border-[#00bfff] hover:text-[#00bfff] ${
-              user ? 'text-[#00bfff] border-[#00bfff]/50' : 'text-gray-600 dark:text-[#9ca3af]'
-            }`}
-            title={user ? `Logged in as ${user.name}` : 'Login / Register'}
-          >
-            <User size={20} />
-          </Link>
+          {/* Auth */}
+          {user ? (
+            <button
+              onClick={logout}
+              className="hidden sm:flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-4 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              title={`Logged in as ${user.name}`}
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden sm:flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-4 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              title="Login"
+            >
+              Login
+            </Link>
+          )}
 
           {/* Theme Toggle */}
           <button
@@ -154,16 +159,22 @@ const Navbar = () => {
           </nav>
 
           <div className="mt-auto pt-6 border-t border-gray-200 dark:border-[#27353a] grid grid-cols-2 gap-3">
-             <Link
-              to={getDashboardLink()}
-              onClick={() => setIsMenuOpen(false)}
-              className={`flex items-center justify-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] transition-colors hover:border-[#00bfff] hover:text-[#00bfff] ${
-                user ? 'text-[#00bfff] border-[#00bfff]/50' : 'text-gray-600 dark:text-[#9ca3af]'
-              }`}
-            >
-              <User size={20} />
-              <span className="text-sm font-medium">{user ? 'Dashboard' : 'Login'}</span>
-            </Link>
+            {user ? (
+              <button
+                onClick={() => { logout(); setIsMenuOpen(false); }}
+                className="flex items-center justify-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center justify-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              >
+                Login
+              </Link>
+            )}
 
             <button
               onClick={() => {

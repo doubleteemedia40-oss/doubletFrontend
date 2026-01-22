@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from '../components/ProductCard';
 import { useStore } from '../store/useStore';
+import SEO from '../components/SEO';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -48,6 +49,12 @@ const ProductListing = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-16 transition-colors duration-300">
+      <SEO
+        title="Browse Products — DoubleT"
+        description="Explore premium digital accounts and services across social platforms and VPN."
+        canonicalPath="/products"
+        type="website"
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12 transition-colors duration-300">
