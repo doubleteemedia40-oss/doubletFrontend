@@ -69,7 +69,13 @@ const Checkout = () => {
           body: JSON.stringify({ amount: Math.round(total * 100), email: formData.email, reference, metadata: { customer: formData.fullName } }),
         });
         if (!res.ok) {
-          toast.error('Failed to initiate payment');
+          let err: any = null;
+          try { err = await res.json(); } catch {}
+          const msg = err?.error || 'Failed to initiate payment';
+          toast.error(msg);
+          if (err?.details) {
+            console.warn('Paystack error details:', err.details);
+          }
           setIsLoading(false);
           return;
         }
