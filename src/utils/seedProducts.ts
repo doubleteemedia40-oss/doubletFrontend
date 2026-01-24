@@ -1,5 +1,6 @@
 
 import type { Product } from '../store/useStore';
+import { useStore } from '../store/useStore';
  
 const API_BASE = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL || 'http://localhost:4000';
 
@@ -131,10 +132,11 @@ export const seedProducts = async () => {
     if (Array.isArray(data.items) && data.items.length > 0) {
       return { success: false, message: 'Products already seeded' };
     }
+    const token = useStore.getState().token;
     for (const product of initialProducts) {
       const resp = await fetch(`${API_BASE}/api/products`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(product),
       });
       if (!resp.ok) throw new Error(`Failed to create product (${resp.status})`);
