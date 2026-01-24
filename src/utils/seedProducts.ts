@@ -126,22 +126,35 @@ export const initialProducts: Omit<Product, 'id'>[] = [
 
 export const seedProducts = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/products`);
-    if (!res.ok) throw new Error('Failed to check products');
-    const data = await res.json();
-    if (Array.isArray(data.items) && data.items.length > 0) {
-      return { success: false, message: 'Products already seeded' };
+    // Check DB (or current mode) first; if products exist, skip
+    const resDb = await fetch(`${API_BASE}/api/products?source=db&limit=50`);
+    if (!resDb.ok) throw new Error('Failed to check products');
+    const dbData = await resDb.json();
+    if (Array.isArray(dbData.items) && dbData.items.length > 0) {
+      return { success: false, message: 'Products already present' };
     }
+    // Prefer file products if available
+    const resFile = await fetch(`${API_BASE}/api/products?source=file&limit=1000`);
+    const fileData = resFile.ok ? await resFile.json() : { items: [] };
+    const sourceItems = Array.isArray(fileData.items) && fileData.items.length > 0 ? fileData.items : initialProducts;
     const token = useStore.getState().token;
-    for (const product of initialProducts) {
+    for (const item of sourceItems) {
+      const payload = {
+        name: item.name,
+        category: item.category,
+        price: item.price,
+        stock: item.stock,
+        description: item.description || '',
+        ...(Array.isArray(item.features) ? { features: item.features } : {}),
+      };
       const resp = await fetch(`${API_BASE}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify(product),
+        body: JSON.stringify(payload),
       });
       if (!resp.ok) throw new Error(`Failed to create product (${resp.status})`);
     }
-    return { success: true, message: 'Products seeded successfully' };
+    return { success: true, message: sourceItems === initialProducts ? 'Seeded default products' : 'Seeded from file products' };
   } catch (error) {
     console.error('Error seeding products:', error);
     throw error;
