@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 
-const AUTO_HIDE_MS = 5000;
+const AUTO_HIDE_MS = 12000;
 const STORAGE_KEY = 'doublet_disclaimer_seen';
 
 const DisclaimerModal = () => {
