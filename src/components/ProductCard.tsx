@@ -51,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'default' 
   }
 
   return (
-    <Link to={`/product/${product.id}`} className="card-hover flex flex-col justify-between rounded-xl border border-border-color bg-surface-dark p-6 hover:border-primary hover:shadow-lg hover:shadow-primary/20 transition-all">
+    <Link to={`/product/${product.id}`} className="group card-hover flex flex-col justify-between rounded-xl border border-border-color bg-surface-dark p-6 hover:border-primary hover:shadow-lg hover:shadow-primary/20 transition-all">
       <div>
         <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors">
           {product.name}
@@ -94,14 +94,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'default' 
             ₦{product.price.toLocaleString()}
           </span>
         </div>
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(); }}
-          disabled={product.stock === 0}
-          className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-black transition-all hover:bg-[#00bfff] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Add to Cart
-          <Plus size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/product/${product.id}`}
+            className="rounded-lg border border-border-color bg-[#0f1e23] px-4 py-2 text-sm font-semibold text-white hover:border-primary hover:text-primary transition-all"
+            onClick={(e) => e.stopPropagation()}
+            title="View Details"
+          >
+            View
+          </Link>
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(); }}
+            disabled={product.stock === 0}
+            className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-bold text-black transition-all hover:bg-[#00bfff] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Add to Cart
+            <Plus size={16} />
+          </button>
+        </div>
       </div>
     </Link>
   );
