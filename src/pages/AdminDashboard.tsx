@@ -8,7 +8,7 @@ import { Database, Layers, TrendingUp, ShoppingCart, DollarSign, Users, MoreVert
 import { useEffect } from 'react';
 
 const AdminDashboard = () => {
-  const { products, orders } = useStore();
+  const { products, orders, user, fetchProducts } = useStore();
   const toast = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
   const [systemStatus, setSystemStatus] = useState<{ paystackConfigured: boolean; firebaseConfigured: boolean; maintenance: boolean } | null>(null);
@@ -44,6 +44,12 @@ const AdminDashboard = () => {
       .then(data => setSystemStatus(data.config))
       .catch(() => setSystemStatus(null));
   }, []);
+  
+  useEffect(() => {
+    if (user?.isAdmin) {
+      fetchProducts(1000);
+    }
+  }, [user, fetchProducts]);
   
   const toggleMaintenance = async () => {
     try {
