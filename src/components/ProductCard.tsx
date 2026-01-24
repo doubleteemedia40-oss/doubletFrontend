@@ -15,10 +15,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'default' 
   const regionTag = product.features.find(f => f.toLowerCase().startsWith('region:'));
   const ageTag = product.features.find(f => f.toLowerCase().startsWith('age:'));
   const followersTag = product.features.find(f => f.toLowerCase().startsWith('followers:'));
+  const friendsTag = product.features.find(f => f.toLowerCase().startsWith('friends:'));
+  const vpnTag = product.features.find(f => f.toLowerCase().startsWith('vpn:'));
+  const logsTag = product.features.find(f => f.toLowerCase().startsWith('logs:'));
+  const useTag = product.features.find(f => f.toLowerCase().startsWith('use:'));
+  const marketplaceTag = product.features.find(f => f.toLowerCase().startsWith('marketplace:'));
   const region = regionTag ? regionTag.split(':')[1]?.trim() : '';
   const age = ageTag ? ageTag.split(':')[1]?.trim() : '';
   const followers = followersTag ? followersTag.split(':')[1]?.trim() : '';
-  const coreFeatureKeys = ['region:', 'platform:', 'age:', 'followers:'];
+  const friends = friendsTag ? friendsTag.split(':')[1]?.trim() : '';
+  const vpnBrand = vpnTag ? vpnTag.split(':')[1]?.trim() : '';
+  const logsType = logsTag ? logsTag.split(':')[1]?.trim() : '';
+  const useVal = useTag ? useTag.split(':')[1]?.trim() : '';
+  const marketplace = marketplaceTag ? marketplaceTag.split(':')[1]?.trim() : '';
+  const coreFeatureKeys = ['region:', 'platform:', 'age:', 'followers:', 'friends:', 'vpn:', 'logs:', 'use:', 'marketplace:'];
   const displayFeatures = product.features.filter(f => !coreFeatureKeys.some(k => f.toLowerCase().startsWith(k)));
   const extraCount = Math.max(0, displayFeatures.length - 3);
 
@@ -58,20 +68,37 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'default' 
         </h3>
         <p className="mt-1 text-sm text-text-muted line-clamp-2">{product.description}</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-[#0f1e23] border border-[#27353a] px-3 py-2 text-xs text-slate-300">
-            <span className="mr-1">Country:</span>
-            <span className="text-white">{region || '—'}</span>
-          </div>
-          <div className="rounded-lg bg-[#0f1e23] border border-[#27353a] px-3 py-2 text-xs text-slate-300">
-            <span className="mr-1">Age:</span>
-            <span className="text-white">{age || '—'}</span>
-          </div>
-          <div className="col-span-2 rounded-lg bg-[#0f1e23] border border-[#27353a] px-3 py-2 text-xs text-slate-300">
-            <span className="mr-1">Followers:</span>
-            <span className="text-white">{followers || '—'}</span>
-          </div>
-        </div>
+        {(() => {
+          const cat = product.category.toLowerCase();
+          const boxes: Array<{ label: string; value: string; colSpan?: number }> = [];
+          if (cat === 'instagram' || cat === 'tiktok' || cat === 'twitter') {
+            boxes.push({ label: 'Country', value: region || '—' });
+            boxes.push({ label: 'Age', value: age || '—' });
+            boxes.push({ label: 'Followers', value: followers || '—', colSpan: 2 });
+          } else if (cat === 'facebook') {
+            boxes.push({ label: 'Country', value: region || '—' });
+            boxes.push({ label: 'Friends', value: friends || '—' });
+            boxes.push({ label: 'Marketplace', value: marketplace || '—', colSpan: 2 });
+          } else if (cat === 'vpn') {
+            boxes.push({ label: 'Brand', value: vpnBrand || product.name.split(' ')[0] || '—' });
+            boxes.push({ label: 'Servers', value: displayFeatures.find(f => f.toLowerCase().includes('server')) ? 'Global' : '—' });
+          } else if (cat === 'logs') {
+            boxes.push({ label: 'Type', value: logsType || product.name.split(' ')[0] || '—' });
+            boxes.push({ label: 'Use', value: useVal || '—' });
+            boxes.push({ label: 'Region', value: region || '—' });
+          }
+          if (!boxes.length) return null;
+          return (
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {boxes.map((b, i) => (
+                <div key={i} className={`${b.colSpan === 2 ? 'col-span-2' : ''} rounded-lg bg-[#0f1e23] border border-[#27353a] px-3 py-2 text-xs text-slate-300`}>
+                  <span className="mr-1">{b.label}:</span>
+                  <span className="text-white">{b.value}</span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         <div className="mt-4 flex flex-wrap gap-2">
           {displayFeatures.slice(0, 3).map((feature, idx) => (
