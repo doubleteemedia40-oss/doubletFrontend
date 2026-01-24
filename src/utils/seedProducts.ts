@@ -239,25 +239,15 @@ export const seedProducts = async () => {
     if (Array.isArray(dbData.items) && dbData.items.length > 0) {
       return { success: false, message: 'Products already present' };
     }
-    const sourceItems = initialProducts;
     const token = useStore.getState().token;
-    for (const item of sourceItems) {
-      const payload = {
-        name: item.name,
-        category: item.category,
-        price: item.price,
-        stock: item.stock,
-        description: item.description || '',
-        ...(Array.isArray(item.features) ? { features: item.features } : {}),
-      };
-      const resp = await fetch(`${API_BASE}/api/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) throw new Error(`Failed to create product (${resp.status})`);
-    }
-    return { success: true, message: 'Seeded from file products' };
+    const resp = await fetch(`${API_BASE}/api/products/seed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ items: initialProducts }),
+    });
+    if (!resp.ok) throw new Error(`Failed to create product (${resp.status})`);
+    const data = await resp.json();
+    return { success: true, message: `Seeded ${data.created} products` };
   } catch (error) {
     console.error('Error seeding products:', error);
     throw error;
