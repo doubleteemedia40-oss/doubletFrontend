@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import { lazy, Suspense } from 'react';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ProductListing = lazy(() => import('./pages/ProductListing'));
+const About = lazy(() => import('./pages/About'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const ShoppingCart = lazy(() => import('./pages/ShoppingCart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
@@ -62,6 +63,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductListing />} />
+            <Route path="/about" element={<About />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<ShoppingCart />} />
             <Route path="/checkout" element={
