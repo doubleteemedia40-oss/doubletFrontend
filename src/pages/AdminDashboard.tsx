@@ -5,11 +5,14 @@ import { seedProducts } from '../utils/seedProducts';
 import { useToast } from '../context/useToast';
 import AdminLayout from '../components/AdminLayout';
 import { Database, Layers, TrendingUp, ShoppingCart, DollarSign, Users, MoreVertical } from 'lucide-react';
+import { useEffect } from 'react';
 
 const AdminDashboard = () => {
   const { products, orders } = useStore();
   const toast = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
+  const [systemStatus, setSystemStatus] = useState<{ paystackConfigured: boolean; firebaseConfigured: boolean; maintenance: boolean } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleSeed = async () => {
     if (!window.confirm('Are you sure you want to seed products? This might create duplicates if not careful.')) return;
@@ -32,6 +35,35 @@ const AdminDashboard = () => {
     totalOrders: orders.length,
     revenue: orders.reduce((acc, order) => acc + order.total, 0),
     activeCustomers: new Set(orders.map(o => o.email)).size,
+  };
+  
+  useEffect(() => {
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    fetch(`${base}/api/health`)
+      .then(res => res.json())
+      .then(data => setSystemStatus(data.config))
+      .catch(() => setSystemStatus(null));
+  }, []);
+  
+  const toggleMaintenance = async () => {
+    try {
+      setIsUpdating(true);
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const token = useStore.getState().token;
+      const res = await fetch(`${base}/api/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ maintenance: !(systemStatus?.maintenance) }),
+      });
+      if (!res.ok) throw new Error('Failed to update config');
+      const data = await res.json();
+      setSystemStatus(data.config);
+      toast.success(`Maintenance ${data.config.maintenance ? 'enabled' : 'disabled'}`);
+    } catch {
+      toast.error('Failed to update maintenance');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -114,6 +146,40 @@ const AdminDashboard = () => {
                 </div>
                 <p className="text-slate-400 text-sm font-medium">Active Customers</p>
                 <h3 className="text-2xl font-bold text-white mt-1">{stats.activeCustomers}</h3>
+              </div>
+            </div>
+            
+            {/* System Status */}
+            <div className="bg-[#18282e] border border-[#27353a] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-white">System Status</h2>
+                <button
+                  onClick={toggleMaintenance}
+                  disabled={isUpdating || !systemStatus}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors border ${systemStatus?.maintenance ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-emerald-500 text-black border-emerald-500'}`}
+                >
+                  {isUpdating ? 'Updating...' : (systemStatus?.maintenance ? 'Disable Maintenance' : 'Enable Maintenance')}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
+                  <p className="text-slate-400 text-xs">Paystack</p>
+                  <p className={`text-sm font-bold ${systemStatus?.paystackConfigured ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {systemStatus?.paystackConfigured ? 'Configured' : 'Missing'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
+                  <p className="text-slate-400 text-xs">Firebase</p>
+                  <p className={`text-sm font-bold ${systemStatus?.firebaseConfigured ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {systemStatus?.firebaseConfigured ? 'Configured' : 'Missing'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
+                  <p className="text-slate-400 text-xs">Maintenance Mode</p>
+                  <p className={`text-sm font-bold ${systemStatus?.maintenance ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                    {systemStatus?.maintenance ? 'Enabled' : 'Disabled'}
+                  </p>
+                </div>
               </div>
             </div>
 

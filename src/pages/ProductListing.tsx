@@ -101,6 +101,17 @@ const ProductListing = () => {
               </div>
             ))}
           </div>
+        ) : selectedCategory === 'all' && searchTerm.trim().length === 0 ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div key={idx} className="rounded-xl border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] p-4 animate-pulse">
+                <div className="h-32 rounded-lg bg-gray-200 dark:bg-[#27353a]" />
+                <div className="mt-4 h-4 w-2/3 rounded bg-gray-200 dark:bg-[#27353a]" />
+                <div className="mt-2 h-3 w-1/2 rounded bg-gray-200 dark:bg-[#27353a]" />
+                <div className="mt-4 h-8 w-24 rounded bg-gray-200 dark:bg-[#27353a]" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-16 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 dark:from-cyan-500/5 dark:to-purple-500/5 rounded-xl border border-cyan-500/20 dark:border-cyan-500/20 transition-colors duration-300">
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4 transition-colors duration-300">No products found matching your search.</p>

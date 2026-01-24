@@ -4,6 +4,7 @@ const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined;
 const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
 const welcomeTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_WELCOME_ID as string | undefined;
 const releaseTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_RELEASE_ID as string | undefined;
+const partialTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_PARTIAL_ID as string | undefined;
 const resetTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_RESET_ID as string | undefined;
 
 // Helper to check if configuration is present
@@ -36,6 +37,7 @@ export const sendReleaseEmail = async (params: {
   to_name: string;
   order_id: string;
   total: string;
+  details?: string;
 }) => {
   if (!isConfigured || !releaseTemplateId) {
     console.warn("EmailJS configuration missing. Skipping release email.");
@@ -47,6 +49,26 @@ export const sendReleaseEmail = async (params: {
     console.log(`Release email sent to ${params.to_email}`);
   } catch (error) {
     console.warn("EmailJS send failed (Release). Check AdBlockers/Firewall.");
+    throw error;
+  }
+};
+
+export const sendPartialEmail = async (params: {
+  to_email: string;
+  to_name: string;
+  order_id: string;
+  total: string;
+  details?: string;
+}) => {
+  if (!isConfigured || !partialTemplateId) {
+    console.warn("EmailJS configuration missing. Skipping partial email.");
+    return;
+  }
+  try {
+    await emailjs.send(serviceId as string, partialTemplateId, params, { publicKey });
+    console.log(`Partial delivery email sent to ${params.to_email}`);
+  } catch (error) {
+    console.warn("EmailJS send failed (Partial). Check AdBlockers/Firewall.");
     throw error;
   }
 };

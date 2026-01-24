@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 // Using pure backend auth; no Firebase client imports
-import { sendReleaseEmail } from '../email/emailClient';
+import { sendReleaseEmail, sendPartialEmail } from '../email/emailClient';
 
 export interface Product {
   id: string;
@@ -50,6 +50,9 @@ interface Store {
   ordersCursor: string | null;
   isLoading: boolean;
   error: string | null;
+  inventoryCounts: Record<string, number>;
+  deliveredNotifiedIds: string[];
+  partialNotifiedIds: string[];
   
   // Initialization
   initialize: () => () => void;
@@ -93,6 +96,11 @@ interface Store {
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
+  addInventory: (productId: string, entries: string[]) => Promise<number>;
+  fetchInventoryCounts: () => Promise<void>;
+  exportInventory: (productId: string) => Promise<string>;
+  importInventory: (productId: string, csvText: string) => Promise<number>;
+  fetchInventoryHistory: (productId: string) => Promise<{ items: Array<{ productId: string; by: string; count: number; added: number; at: number; type?: string }> }>;
 
   // Order actions
   fetchOrders: (limit?: number, cursor?: string | null) => Promise<void>;
@@ -106,6 +114,8 @@ interface Store {
   // Auth helpers
   requestPasswordReset: (email: string) => Promise<string>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  resendReleaseEmail: (orderId: string) => Promise<void>;
+  resendPartialEmail: (orderId: string) => Promise<void>;
 }
 
 export const useStore = create<Store>()(
@@ -118,6 +128,9 @@ export const useStore = create<Store>()(
       orders: [],
       productsLimit: 20,
       ordersCursor: null,
+      inventoryCounts: {},
+      deliveredNotifiedIds: [],
+      partialNotifiedIds: [],
       categories: ['Streaming', 'Gaming', 'Software', 'VPN'],
       regions: ['Global (Worldwide)', 'United States', 'United Kingdom', 'European Union', 'Asia Pacific'],
       platforms: ['Netflix', 'Spotify', 'Steam', 'Disney+', 'Amazon Prime', 'Other'],
@@ -364,6 +377,77 @@ export const useStore = create<Store>()(
           set({ isLoading: false });
         }
       },
+      
+      addInventory: async (productId, entries) => {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const token = get().token;
+        const res = await fetch(`${base}/api/inventory/${encodeURIComponent(productId)}/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ entries }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to add inventory');
+        }
+        const data = await res.json();
+        set((state) => ({
+          inventoryCounts: { ...state.inventoryCounts, [productId]: data.count as number }
+        }));
+        return data.count as number;
+      },
+      
+      fetchInventoryCounts: async () => {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const token = get().token;
+        const res = await fetch(`${base}/api/inventory/counts`, {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        set({ inventoryCounts: data.counts || {} });
+      },
+      
+      exportInventory: async (productId) => {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const token = get().token;
+        const res = await fetch(`${base}/api/inventory/${encodeURIComponent(productId)}/export`, {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        if (!res.ok) throw new Error('Failed to export inventory');
+        const text = await res.text();
+        return text;
+      },
+      
+      importInventory: async (productId, csvText) => {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const token = get().token;
+        const res = await fetch(`${base}/api/inventory/${encodeURIComponent(productId)}/import`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ csv: csvText }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to import inventory');
+        }
+        const data = await res.json();
+        set((state) => ({
+          inventoryCounts: { ...state.inventoryCounts, [productId]: data.count as number }
+        }));
+        return data.count as number;
+      },
+      
+      fetchInventoryHistory: async (productId) => {
+        const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const token = get().token;
+        const res = await fetch(`${base}/api/inventory/${encodeURIComponent(productId)}/history`, {
+          headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        });
+        if (!res.ok) throw new Error('Failed to fetch inventory history');
+        const data = await res.json();
+        return data as { items: Array<{ productId: string; by: string; count: number; added: number; at: number; type?: string }> };
+      },
 
       fetchOrders: async (limit, cursor) => {
         try {
@@ -378,6 +462,41 @@ export const useStore = create<Store>()(
           if (!res.ok) throw new Error(`Failed to fetch orders (${res.status})`);
           const data = await res.json();
           set({ orders: data.items, ordersCursor: data.nextCursor || null });
+          try {
+            const deliveredSet = new Set(get().deliveredNotifiedIds);
+            const partialSet = new Set(get().partialNotifiedIds);
+            for (const order of data.items as Order[]) {
+              if (order.status === 'Delivered' && order.delivery?.details && !deliveredSet.has(order.id)) {
+                try {
+                  await sendReleaseEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Release email notification failed');
+                }
+              } else if (order.status === 'Processing' && order.delivery?.details && !partialSet.has(order.id)) {
+                try {
+                  await sendPartialEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Partial email notification failed');
+                }
+              }
+            }
+          } catch {
+            console.warn('Order notification processing failed');
+          }
         } catch (error) {
           console.error("Error fetching orders:", error);
         }
@@ -395,6 +514,41 @@ export const useStore = create<Store>()(
           if (!res.ok) throw new Error(`Failed to fetch orders (${res.status})`);
           const data = await res.json();
           set((state) => ({ orders: [...state.orders, ...data.items], ordersCursor: data.nextCursor || null }));
+          try {
+            const deliveredSet = new Set(get().deliveredNotifiedIds);
+            const partialSet = new Set(get().partialNotifiedIds);
+            for (const order of data.items as Order[]) {
+              if (order.status === 'Delivered' && order.delivery?.details && !deliveredSet.has(order.id)) {
+                try {
+                  await sendReleaseEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Release email notification failed');
+                }
+              } else if (order.status === 'Processing' && order.delivery?.details && !partialSet.has(order.id)) {
+                try {
+                  await sendPartialEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Partial email notification failed');
+                }
+              }
+            }
+          } catch {
+            console.warn('Order notification processing failed');
+          }
         } catch (error) {
           console.error("Error fetching more orders:", error);
         }
@@ -414,6 +568,41 @@ export const useStore = create<Store>()(
           if (!res.ok) throw new Error(`Failed to fetch user orders (${res.status})`);
           const data = await res.json();
           set({ orders: data.items, ordersCursor: data.nextCursor || null });
+          try {
+            const deliveredSet = new Set(get().deliveredNotifiedIds);
+            const partialSet = new Set(get().partialNotifiedIds);
+            for (const order of data.items as Order[]) {
+              if (order.status === 'Delivered' && order.delivery?.details && !deliveredSet.has(order.id)) {
+                try {
+                  await sendReleaseEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Release email notification failed');
+                }
+              } else if (order.status === 'Processing' && order.delivery?.details && !partialSet.has(order.id)) {
+                try {
+                  await sendPartialEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Partial email notification failed');
+                }
+              }
+            }
+          } catch {
+            console.warn('Order notification processing failed');
+          }
         } catch (error) {
           console.error("Error fetching user orders:", error);
         }
@@ -432,6 +621,41 @@ export const useStore = create<Store>()(
           if (!res.ok) throw new Error(`Failed to fetch user orders (${res.status})`);
           const data = await res.json();
           set((state) => ({ orders: [...state.orders, ...data.items], ordersCursor: data.nextCursor || null }));
+          try {
+            const deliveredSet = new Set(get().deliveredNotifiedIds);
+            const partialSet = new Set(get().partialNotifiedIds);
+            for (const order of data.items as Order[]) {
+              if (order.status === 'Delivered' && order.delivery?.details && !deliveredSet.has(order.id)) {
+                try {
+                  await sendReleaseEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Release email notification failed');
+                }
+              } else if (order.status === 'Processing' && order.delivery?.details && !partialSet.has(order.id)) {
+                try {
+                  await sendPartialEmail({
+                    to_email: order.email,
+                    to_name: order.customer,
+                    order_id: order.id,
+                    total: order.total.toString(),
+                    details: order.delivery.details,
+                  });
+                  set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, order.id] }));
+                } catch {
+                  console.warn('Partial email notification failed');
+                }
+              }
+            }
+          } catch {
+            console.warn('Order notification processing failed');
+          }
         } catch (error) {
           console.error("Error fetching more user orders:", error);
         }
@@ -535,7 +759,9 @@ export const useStore = create<Store>()(
                   to_name: order.customer,
                   order_id: order.id,
                   total: order.total.toString(),
+                  details: order.delivery?.details || ''
                 });
+                set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, orderId] }));
               } catch (emailError) {
                 console.error("Failed to send release email:", emailError);
               }
@@ -562,6 +788,30 @@ export const useStore = create<Store>()(
         set((state) => ({
           orders: state.orders.map(o => o.id === orderId ? { ...o, delivery: updated.delivery } : o)
         }));
+        try {
+          const order = get().orders.find(o => o.id === orderId);
+          if (order?.status === 'Delivered') {
+            await sendReleaseEmail({
+              to_email: order.email,
+              to_name: order.customer,
+              order_id: order.id,
+              total: order.total.toString(),
+              details: details
+            });
+            set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, orderId] }));
+          } else if (order?.status === 'Processing') {
+            await sendPartialEmail({
+              to_email: order.email,
+              to_name: order.customer,
+              order_id: order.id,
+              total: order.total.toString(),
+              details: details
+            });
+            set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, orderId] }));
+          }
+        } catch (emailError) {
+          console.error("Failed to send delivery email:", emailError);
+        }
       },
 
       requestPasswordReset: async (email: string) => {
@@ -592,6 +842,31 @@ export const useStore = create<Store>()(
         }
       },
 
+      resendReleaseEmail: async (orderId) => {
+        const order = get().orders.find(o => o.id === orderId);
+        if (!order) return;
+        await sendReleaseEmail({
+          to_email: order.email,
+          to_name: order.customer,
+          order_id: order.id,
+          total: order.total.toString(),
+          details: order.delivery?.details || ''
+        });
+        set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, orderId] }));
+      },
+      
+      resendPartialEmail: async (orderId) => {
+        const order = get().orders.find(o => o.id === orderId);
+        if (!order) return;
+        await sendPartialEmail({
+          to_email: order.email,
+          to_name: order.customer,
+          order_id: order.id,
+          total: order.total.toString(),
+          details: order.delivery?.details || ''
+        });
+        set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, orderId] }));
+      },
       
     }),
     {

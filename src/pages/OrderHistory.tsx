@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import UserSidebar from '../components/UserSidebar';
-import { Search, Filter, ChevronRight, X, Eye, Package } from 'lucide-react';
+import { Search, ChevronRight, X, Eye, Package } from 'lucide-react';
 import type { Order } from '../store/useStore';
+import { useToast } from '../context/useToast';
 
 const OrderHistory = () => {
   const { orders, user, loadMoreUserOrders } = useStore();
+  const toast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'partial' | 'awaiting'>('all');
 
   // Filter orders for the current user (mocking 'current user' as we don't have auth fully wired to specific user ID in store yet, 
   // but assuming 'orders' contains all orders. In real app, we'd filter by user.id)
@@ -16,9 +19,15 @@ const OrderHistory = () => {
   // We'll display all orders for demo purposes.
   const userOrders = orders; 
 
-  const filteredOrders = userOrders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = userOrders
+    .filter(order => order.id.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(order => {
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'ready') return (['Delivered', 'Completed'].includes(order.status)) && !!order.delivery?.details;
+      if (statusFilter === 'partial') return order.status === 'Processing' && !!order.delivery?.details;
+      if (statusFilter === 'awaiting') return order.status === 'Pending';
+      return true;
+    });
 
   return (
     <div className="bg-[#f5f8f8] dark:bg-[#0f1e23] text-slate-900 dark:text-white font-display min-h-screen flex flex-col antialiased">
@@ -71,10 +80,30 @@ const OrderHistory = () => {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#25383f] rounded-lg hover:bg-slate-50 dark:hover:bg-[#0f1e23] transition-colors">
-                  <Filter size={18} />
-                  Filter
-                </button>
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'all' ? 'bg-[#00bfff] text-black border-[#00bfff]' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setStatusFilter('ready')}
+                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'ready' ? 'bg-emerald-500 text-white border-emerald-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+              >
+                Ready
+              </button>
+              <button
+                onClick={() => setStatusFilter('partial')}
+                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'partial' ? 'bg-sky-500 text-white border-sky-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+              >
+                Partial
+              </button>
+              <button
+                onClick={() => setStatusFilter('awaiting')}
+                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'awaiting' ? 'bg-yellow-500 text-white border-yellow-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+              >
+                Awaiting
+              </button>
               </div>
             </div>
 
@@ -103,17 +132,34 @@ const OrderHistory = () => {
                         ₦{order.total}
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                          order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                          order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                          order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                          'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                        }`}>
-                          {order.status === 'Pending' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>}
-                          {order.status === 'Processing' && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>}
-                          {order.status === 'Delivered' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                            order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                            order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                            order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                            'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                          }`}>
+                            {order.status === 'Pending' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>}
+                            {order.status === 'Processing' && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>}
+                            {order.status === 'Delivered' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
                           {order.status}
-                        </span>
+                          </span>
+                          {order.delivery?.details && order.delivery.details.trim().length > 0 && (order.status === 'Delivered' || order.status === 'Completed') && (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                              Ready
+                            </span>
+                          )}
+                          {order.delivery?.details && order.delivery.details.trim().length > 0 && order.status === 'Processing' && (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                              Partial
+                            </span>
+                          )}
+                          {order.status === 'Pending' && (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                              Awaiting
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-6 text-right">
                         <button 
@@ -133,6 +179,29 @@ const OrderHistory = () => {
                       </td>
                     </tr>
                   )}
+                  {orders.length === 0 && (
+                    <>
+                      {Array.from({ length: 4 }).map((_, idx) => (
+                        <tr key={`sk-${idx}`}>
+                          <td className="py-4 px-6">
+                            <div className="h-4 w-24 rounded bg-slate-200 dark:bg-[#25383f] animate-pulse" />
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="h-4 w-32 rounded bg-slate-200 dark:bg-[#25383f] animate-pulse" />
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="h-4 w-20 rounded bg-slate-200 dark:bg-[#25383f] animate-pulse" />
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="h-6 w-24 rounded bg-slate-200 dark:bg-[#25383f] animate-pulse" />
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <div className="h-4 w-16 rounded bg-slate-200 dark:bg-[#25383f] animate-pulse ml-auto" />
+                          </td>
+                        </tr>
+                      ))}
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -146,14 +215,31 @@ const OrderHistory = () => {
                       <span className="font-mono text-[#00bfff] font-medium text-sm">#{order.id.slice(0, 8)}</span>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                      order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                      order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                      order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                      'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    }`}>
-                      {order.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                        order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                        order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                        'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                      }`}>
+                        {order.status}
+                      </span>
+                      {order.delivery?.details && order.delivery.details.trim().length > 0 && (order.status === 'Delivered' || order.status === 'Completed') && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          Ready
+                        </span>
+                      )}
+                      {order.delivery?.details && order.delivery.details.trim().length > 0 && order.status === 'Processing' && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                          Partial
+                        </span>
+                      )}
+                      {order.status === 'Pending' && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                          Awaiting
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-sm font-medium text-slate-900 dark:text-white">
@@ -283,9 +369,46 @@ const OrderHistory = () => {
               {/* Delivery Details */}
               {selectedOrder.delivery?.details && (
                 <div className="mt-6">
-                  <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Delivery Details</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Delivery Details</h4>
+                    <button
+                      onClick={() => {
+                        try {
+                          navigator.clipboard.writeText(selectedOrder.delivery!.details);
+                          toast.success('Copied delivery details');
+                        } catch {
+                          toast.error('Copy failed');
+                        }
+                      }}
+                      className="text-xs px-3 py-1 rounded-lg border border-[#27353a] text-slate-300 hover:text-white"
+                    >
+                      Copy All
+                    </button>
+                  </div>
                   <div className="bg-slate-50 dark:bg-[#0f1e23] p-4 rounded-xl border border-slate-200 dark:border-[#25383f]">
                     <pre className="text-sm text-slate-900 dark:text-white whitespace-pre-wrap">{selectedOrder.delivery.details}</pre>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => {
+                          try {
+                            const blob = new Blob([selectedOrder.delivery!.details], { type: 'text/plain;charset=utf-8' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `order_${selectedOrder.id}_credentials.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          } catch {
+                            toast.error('Download failed');
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-[#00bfff] text-black text-xs font-semibold hover:bg-[#00bfff]/90 transition-colors"
+                      >
+                        Download Credentials
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -299,6 +422,9 @@ const OrderHistory = () => {
               >
                 Close
               </button>
+                  <a href="/contact" className="px-4 py-2 text-sm font-medium rounded-lg border border-[#27353a] text-slate-600 dark:text-slate-300 hover:text-white">
+                    Contact Support
+                  </a>
               <button className="px-4 py-2 bg-[#00bfff] hover:bg-[#00bfff]/90 text-white text-sm font-medium rounded-lg shadow-lg shadow-[#00bfff]/20 transition-all">
                 Download Invoice
               </button>

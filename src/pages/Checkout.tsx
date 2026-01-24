@@ -45,7 +45,12 @@ const Checkout = () => {
           setIsLoading(false);
           return;
         }
-        const reference = `DT-${Date.now()}`;
+        const generateRef = () => {
+          const arr = new Uint8Array(12);
+          crypto.getRandomValues(arr);
+          return 'DT-' + Array.from(arr).map((x) => x.toString(16).padStart(2, '0')).join('');
+        };
+        const reference = generateRef();
         try {
           await createOrder({
             userId: user?.id || 'guest',
@@ -69,12 +74,19 @@ const Checkout = () => {
           body: JSON.stringify({ amount: Math.round(total * 100), email: formData.email, reference, metadata: { customer: formData.fullName } }),
         });
         if (!res.ok) {
-          let err: any = null;
-          try { err = await res.json(); } catch {}
-          const msg = err?.error || 'Failed to initiate payment';
+          let err: Record<string, unknown> | undefined;
+          try { err = await res.json(); } catch { err = undefined; }
+          const msg = (err && typeof err.error === 'string' ? (err.error as string) : undefined) || 'Failed to initiate payment';
           toast.error(msg);
-          if (err?.details) {
-            console.warn('Paystack error details:', err.details);
+          const details = err && (err as Record<string, unknown>).details as Record<string, unknown> | undefined;
+          if (details) {
+            console.warn('Paystack error details:', details);
+            const code = (details as Record<string, unknown>)?.code as string | undefined;
+            const meta = (details as Record<string, unknown>)?.meta as Record<string, unknown> | undefined;
+            if (code === 'disabled_merchant') {
+              const next = (meta?.nextStep as string | undefined) || 'Merchant may be inactive. Please contact Paystack support.';
+              toast.info(next, { position: 'top-right', duration: 6000 });
+            }
           }
           setIsLoading(false);
           return;

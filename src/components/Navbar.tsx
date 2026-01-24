@@ -87,6 +87,25 @@ const Navbar = () => {
             )}
           </Link>
 
+          {/* Mobile Auth quick action */}
+          {user ? (
+            <button
+              onClick={logout}
+              className="flex md:hidden items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-3 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              title={`Logged in as ${user.name}`}
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex md:hidden items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-3 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
+              title="Login"
+            >
+              Login
+            </Link>
+          )}
+
           {/* Auth */}
           {user ? (
             <button

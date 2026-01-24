@@ -2,27 +2,29 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import ProductListing from './pages/ProductListing';
-import ProductDetail from './pages/ProductDetail';
-import ShoppingCart from './pages/ShoppingCart';
-import Checkout from './pages/Checkout';
-import OrderConfirmed from './pages/OrderConfirmed';
-import AccountLogin from './pages/AccountLogin';
-import CreateAccount from './pages/CreateAccount';
-import PasswordRecovery from './pages/PasswordRecovery';
-import OrderHistory from './pages/OrderHistory';
-import AccountSettings from './pages/AccountSettings';
-import AdminDashboard from './pages/AdminDashboard';
-import ManageProduct from './pages/ManageProduct';
-import AdminOrdersList from './pages/AdminOrdersList';
-import AdminUsersList from './pages/AdminUsersList';
-import AdminLeaderboard from './pages/AdminLeaderboard';
-import AdminProductsList from './pages/AdminProductsList';
-import Terms from './pages/Terms';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import RefundPolicy from './pages/RefundPolicy';
-import ContactUs from './pages/ContactUs';
+import { lazy, Suspense } from 'react';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ProductListing = lazy(() => import('./pages/ProductListing'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const ShoppingCart = lazy(() => import('./pages/ShoppingCart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const OrderConfirmed = lazy(() => import('./pages/OrderConfirmed'));
+const AccountLogin = lazy(() => import('./pages/AccountLogin'));
+const CreateAccount = lazy(() => import('./pages/CreateAccount'));
+const PasswordRecovery = lazy(() => import('./pages/PasswordRecovery'));
+const OrderHistory = lazy(() => import('./pages/OrderHistory'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const ManageProduct = lazy(() => import('./pages/ManageProduct'));
+const AdminOrdersList = lazy(() => import('./pages/AdminOrdersList'));
+const AdminUsersList = lazy(() => import('./pages/AdminUsersList'));
+const AdminLeaderboard = lazy(() => import('./pages/AdminLeaderboard'));
+const AdminProductsList = lazy(() => import('./pages/AdminProductsList'));
+const Terms = lazy(() => import('./pages/Terms'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const RefundPolicy = lazy(() => import('./pages/RefundPolicy'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
+import DisclaimerModal from './components/DisclaimerModal';
 import { useStore } from './store/useStore';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -39,6 +41,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <main className="flex-grow">
         {children}
       </main>
+      <DisclaimerModal />
       {!useCustomLayout && <Footer />}
     </div>
   );
@@ -55,7 +58,8 @@ function App() {
   return (
     <Router>
       <Layout>
-        <Routes>
+        <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading...</div>}>
+          <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductListing />} />
             <Route path="/product/:id" element={<ProductDetail />} />
@@ -111,7 +115,8 @@ function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/refund" element={<RefundPolicy />} />
             <Route path="/contact" element={<ContactUs />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </Layout>
     </Router>
   );

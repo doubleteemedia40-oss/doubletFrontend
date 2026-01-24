@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import AdminLayout from '../components/AdminLayout';
-import { Upload, Download, Tag, User, ChevronDown, MoreVertical, Eye, Check, Trash2, Key, X, Save } from 'lucide-react';
+import { Upload, Download, Tag, User, ChevronDown, MoreVertical, Eye, Check, Trash2, Key, X, Save, Send } from 'lucide-react';
 
 const AdminOrdersList = () => {
-  const { orders, loadMoreOrders, updateOrderDelivery, updateOrderStatus } = useStore();
+  const { orders, loadMoreOrders, updateOrderDelivery, updateOrderStatus, resendReleaseEmail, resendPartialEmail } = useStore();
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState('All Statuses');
   const [searchTerm, setSearchTerm] = useState('');
@@ -228,6 +228,36 @@ const AdminOrdersList = () => {
                             >
                               <Check size={20} />
                             </button>
+                            {(order.status === 'Delivered' || order.status === 'Completed') && (
+                              <button
+                                className="text-[#9ab3bc] hover:text-white p-1 rounded hover:bg-[#27353a]"
+                                title="Resend Release Email"
+                                onClick={async () => {
+                                  try {
+                                    await resendReleaseEmail(order.id);
+                                  } catch (e) {
+                                    console.error(e);
+                                  }
+                                }}
+                              >
+                                <Send size={20} />
+                              </button>
+                            )}
+                            {order.status === 'Processing' && (
+                              <button
+                                className="text-[#9ab3bc] hover:text-white p-1 rounded hover:bg-[#27353a]"
+                                title="Resend Partial Email"
+                                onClick={async () => {
+                                  try {
+                                    await resendPartialEmail(order.id);
+                                  } catch (e) {
+                                    console.error(e);
+                                  }
+                                }}
+                              >
+                                <Send size={20} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

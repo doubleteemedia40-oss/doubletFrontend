@@ -113,7 +113,7 @@ const HomePage = () => {
         type="website"
       />
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen w-full border-b border-[#27353a] bg-[#0a0a0a] overflow-hidden flex items-center justify-center">
+      <section ref={heroRef} className="relative min-h-screen w-full bg-[#0a0a0a] overflow-hidden flex items-center justify-center">
         {/* Animated Hue Background Gradient Orbs */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Top-left animated cyan orb */}
@@ -165,39 +165,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="border-b border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] py-12 transition-colors duration-300">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-105">
-              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 transition-all duration-300 group-hover:bg-cyan-500/20 group-hover:scale-110">
-                <Zap size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">Instant Delivery</h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Receive account credentials immediately via email after your payment is confirmed.</p>
-            </div>
-
-            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105">
-              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-all duration-300 group-hover:bg-blue-500/20 group-hover:scale-110">
-                <Lock size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">Secure Checkout</h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Encrypted transactions via cryptocurrency and major cards ensuring your safety.</p>
-            </div>
-
-            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105">
-              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:bg-purple-500/20 group-hover:scale-110">
-                <Headphones size={24} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">24/7 Support</h3>
-              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Expert technical assistance available round the clock to help you get started.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Categories Section */}
-      <section className="py-16 border-t border-gray-200 dark:border-cyan-500/20 transition-colors duration-300">
+      <section className="mt-4 sm:mt-6 py-12 transition-colors duration-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 flex items-end justify-between">
             <div>
@@ -260,6 +231,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      
 
       {/* Featured Products Section */}
       <section className="bg-gray-100 dark:bg-[#0a0a0a]/30 py-16 border-t border-gray-200 dark:border-[#27353a] transition-colors duration-300">
@@ -296,6 +268,34 @@ const HomePage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
+          </div>
+        </div>
+      </section>
+      
+      <section className="border-t border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] py-12 transition-colors duration-300">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-105">
+              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 transition-all duration-300 group-hover:bg-cyan-500/20 group-hover:scale-110">
+                <Zap size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">Instant Delivery</h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Receive account credentials immediately via email after your payment is confirmed.</p>
+            </div>
+            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105">
+              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-all duration-300 group-hover:bg-blue-500/20 group-hover:scale-110">
+                <Lock size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">Secure Checkout</h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Encrypted transactions via cryptocurrency and major cards ensuring your safety.</p>
+            </div>
+            <div className="feature-card flex flex-col items-center text-center p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105">
+              <div className="mb-4 flex size-12 items-center justify.center rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:bg-purple-500/20 group-hover:scale-110">
+                <Headphones size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white transition-colors duration-300">24/7 Support</h3>
+              <p className="mt-2 text-sm text-gray-600 dark:text-[#9ca3af] transition-colors duration-300">Expert technical assistance available round the clock to help you get started.</p>
+            </div>
           </div>
         </div>
       </section>
