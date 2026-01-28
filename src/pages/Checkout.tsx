@@ -51,6 +51,18 @@ const Checkout = () => {
           return 'DT-' + Array.from(arr).map((x) => x.toString(16).padStart(2, '0')).join('');
         };
         const reference = generateRef();
+
+        console.log('📦 Checkout Debug:', {
+          isLoggedIn: !!user,
+          userId: user?.id,
+          hasToken: !!token,
+          customer: formData.fullName,
+          email: formData.email,
+          cartItemsCount: cartItems.length,
+          total: total,
+          reference: reference
+        });
+
         try {
           await createOrder({
             userId: user?.id || 'guest',
@@ -63,8 +75,9 @@ const Checkout = () => {
             createdAt: new Date().toISOString(),
             reference,
           });
-        } catch {
-          toast.error('Order creation failed');
+        } catch (err) {
+          console.error('❌ Order creation error:', err);
+          toast.error(err instanceof Error ? err.message : 'Order creation failed');
           setIsLoading(false);
           return;
         }

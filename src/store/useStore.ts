@@ -53,7 +53,7 @@ interface Store {
   inventoryCounts: Record<string, number>;
   deliveredNotifiedIds: string[];
   partialNotifiedIds: string[];
-  
+
   // Initialization
   initialize: () => () => void;
   fetchProducts: (limit?: number) => Promise<void>;
@@ -64,13 +64,13 @@ interface Store {
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  
+
   // User actions
   signup: (email: string, password: string, name: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
-  
+
   // Category actions
   categories: string[];
   addCategory: (category: string) => void;
@@ -110,7 +110,7 @@ interface Store {
   createOrder: (order: Omit<Order, 'id'>) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   updateOrderDelivery: (orderId: string, details: string) => Promise<void>;
-  
+
   // Auth helpers
   requestPasswordReset: (email: string) => Promise<string>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
@@ -160,7 +160,7 @@ export const useStore = create<Store>()(
           set({ user: null, orders: [] });
         }
         set({ isLoading: false });
-        return () => {};
+        return () => { };
       },
 
       fetchProducts: async (limit) => {
@@ -308,7 +308,7 @@ export const useStore = create<Store>()(
           platforms: state.platforms.filter((p) => p !== platform),
         })),
 
-      
+
 
       addProduct: async (productData) => {
         set({ isLoading: true, error: null });
@@ -377,7 +377,7 @@ export const useStore = create<Store>()(
           set({ isLoading: false });
         }
       },
-      
+
       addInventory: async (productId, entries) => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -396,7 +396,7 @@ export const useStore = create<Store>()(
         }));
         return data.count as number;
       },
-      
+
       fetchInventoryCounts: async () => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -407,7 +407,7 @@ export const useStore = create<Store>()(
         const data = await res.json();
         set({ inventoryCounts: data.counts || {} });
       },
-      
+
       exportInventory: async (productId) => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -418,7 +418,7 @@ export const useStore = create<Store>()(
         const text = await res.text();
         return text;
       },
-      
+
       importInventory: async (productId, csvText) => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -437,7 +437,7 @@ export const useStore = create<Store>()(
         }));
         return data.count as number;
       },
-      
+
       fetchInventoryHistory: async (productId) => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -665,15 +665,51 @@ export const useStore = create<Store>()(
         try {
           const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
           const token = get().token;
+
+          console.log('🔍 Creating order:', {
+            endpoint: `${base}/api/orders`,
+            hasToken: !!token,
+            tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
+            orderData: {
+              userId: orderData.userId,
+              customer: orderData.customer,
+              email: orderData.email,
+              itemsCount: orderData.items?.length,
+              total: orderData.total,
+              status: orderData.status,
+              reference: orderData.reference
+            }
+          });
+
           const res = await fetch(`${base}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
             body: JSON.stringify(orderData),
           });
-          if (!res.ok) throw new Error(`Failed to create order (${res.status})`);
+
+          if (!res.ok) {
+            let errorData;
+            try {
+              errorData = await res.json();
+            } catch {
+              errorData = { error: await res.text() || 'Unknown error' };
+            }
+
+            console.error('❌ Order creation failed:', {
+              status: res.status,
+              statusText: res.statusText,
+              error: errorData,
+              headers: Object.fromEntries(res.headers.entries())
+            });
+
+            throw new Error(errorData.error || `Failed to create order (${res.status})`);
+          }
+
           const created = await res.json();
+          console.log('✅ Order created successfully:', created);
           set((state) => ({ orders: [created, ...state.orders] }));
         } catch (error) {
+          console.error('❌ Exception in createOrder:', error);
           set({ error: 'Failed to create order' });
           throw error;
         }
@@ -745,7 +781,7 @@ export const useStore = create<Store>()(
             body: JSON.stringify({ status }),
           });
           if (!res.ok) throw new Error(`Failed to update order status (${res.status})`);
-          
+
           set((state) => ({
             orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
           }));
@@ -774,7 +810,7 @@ export const useStore = create<Store>()(
           set({ isLoading: false });
         }
       },
-      
+
       updateOrderDelivery: async (orderId, details) => {
         const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         const token = get().token;
@@ -854,7 +890,7 @@ export const useStore = create<Store>()(
         });
         set((state) => ({ deliveredNotifiedIds: [...state.deliveredNotifiedIds, orderId] }));
       },
-      
+
       resendPartialEmail: async (orderId) => {
         const order = get().orders.find(o => o.id === orderId);
         if (!order) return;
@@ -867,7 +903,7 @@ export const useStore = create<Store>()(
         });
         set((state) => ({ partialNotifiedIds: [...state.partialNotifiedIds, orderId] }));
       },
-      
+
     }),
     {
       name: 'doublet-storage',

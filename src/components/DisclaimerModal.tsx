@@ -21,6 +21,9 @@ const DisclaimerModal = () => {
     return () => clearTimeout(t);
   }, [open]);
 
+  // Don't render if already seen or user is logged in
+  if (!open) return null;
+
   return (
     <div id="doublet-disclaimer" className="fixed bottom-4 left-4 z-[60] pointer-events-none">
       <div className="pointer-events-auto w-[22rem] max-w-[90vw] rounded-2xl border border-[#27353a] bg-[#0f1e23]/95 shadow-xl backdrop-blur-sm">
