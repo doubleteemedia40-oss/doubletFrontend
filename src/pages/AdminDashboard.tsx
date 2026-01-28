@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   const { products, orders, user, fetchProducts } = useStore();
   const toast = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
-  const [systemStatus, setSystemStatus] = useState<{ flutterwaveConfigured: boolean; firebaseConfigured: boolean; maintenance: boolean } | null>(null);
+  const [systemStatus, setSystemStatus] = useState<{ flutterwaveConfigured: boolean; backendConnected: boolean; maintenance: boolean } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleSeed = async () => {
@@ -175,9 +175,9 @@ const AdminDashboard = () => {
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
-                <p className="text-slate-400 text-xs">Firebase</p>
-                <p className={`text-sm font-bold ${systemStatus?.firebaseConfigured ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {systemStatus?.firebaseConfigured ? 'Configured' : 'Missing'}
+                <p className="text-slate-400 text-xs">Backend API</p>
+                <p className={`text-sm font-bold ${systemStatus?.backendConnected ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {systemStatus?.backendConnected ? 'Connected' : 'Disconnected'}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
@@ -231,9 +231,9 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-sm font-medium text-white">₦{order.total}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-500/10 text-green-500' :
-                            order.status === 'Processing' ? 'bg-blue-500/10 text-blue-400' :
-                              order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
-                                'bg-red-500/10 text-red-500'
+                          order.status === 'Processing' ? 'bg-blue-500/10 text-blue-400' :
+                            order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                              'bg-red-500/10 text-red-500'
                           }`}>
                           {order.status}
                         </span>
