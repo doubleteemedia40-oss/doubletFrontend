@@ -13,11 +13,9 @@ const OrderHistory = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'partial' | 'awaiting'>('all');
 
-  // Filter orders for the current user (mocking 'current user' as we don't have auth fully wired to specific user ID in store yet, 
-  // but assuming 'orders' contains all orders. In real app, we'd filter by user.id)
-  // For now, let's just use all orders or filter by a dummy email if we had one.
-  // We'll display all orders for demo purposes.
-  const userOrders = orders; 
+  // Filter orders for the current user
+  // Backend already filters by userId for non-admin users, but we filter here too for safety
+  const userOrders = user?.isAdmin ? orders : orders.filter(order => order.userId === user?.id);
 
   const filteredOrders = userOrders
     .filter(order => order.id.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -31,11 +29,11 @@ const OrderHistory = () => {
 
   return (
     <div className="bg-[#f5f8f8] dark:bg-[#0f1e23] text-slate-900 dark:text-white font-display min-h-screen flex flex-col antialiased">
-      
+
       {/* Main Layout */}
       <div className="flex flex-col md:flex-row flex-1 max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <UserSidebar />
-        
+
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col min-w-0">
           {/* Page Heading */}
@@ -47,18 +45,18 @@ const OrderHistory = () => {
 
             {/* Nice Custom Toggle */}
             <div className="flex items-center gap-3 bg-white dark:bg-[#16252b] px-4 py-2 rounded-xl border border-slate-200 dark:border-[#25383f] shadow-sm">
-               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Show Archived</span>
-               <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
-                <input 
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Show Archived</span>
+              <div className="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                <input
                   checked={showArchived}
                   onChange={(e) => setShowArchived(e.target.checked)}
-                  className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-[#25383f] checked:border-[#00bfff] checked:right-0 transition-all duration-300 left-0" 
-                  id="archived-toggle" 
-                  name="toggle" 
+                  className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-[#25383f] checked:border-[#00bfff] checked:right-0 transition-all duration-300 left-0"
+                  id="archived-toggle"
+                  name="toggle"
                   type="checkbox"
                 />
-                <label 
-                  className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer border border-[#25383f] ${showArchived ? 'bg-[#00bfff]' : 'bg-[#203239]'}`} 
+                <label
+                  className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer border border-[#25383f] ${showArchived ? 'bg-[#00bfff]' : 'bg-[#203239]'}`}
                   htmlFor="archived-toggle"
                 ></label>
               </div>
@@ -71,39 +69,39 @@ const OrderHistory = () => {
             <div className="p-4 border-b border-slate-200 dark:border-[#25383f] flex items-center justify-between gap-4 flex-wrap">
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                <input 
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-[#25383f] bg-slate-50 dark:bg-[#0f1e23] text-sm focus:outline-none focus:ring-2 focus:ring-[#00bfff]/50 text-slate-900 dark:text-white placeholder-slate-400" 
-                  placeholder="Search by Order ID..." 
+                <input
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-[#25383f] bg-slate-50 dark:bg-[#0f1e23] text-sm focus:outline-none focus:ring-2 focus:ring-[#00bfff]/50 text-slate-900 dark:text-white placeholder-slate-400"
+                  placeholder="Search by Order ID..."
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-2">
-              <button
-                onClick={() => setStatusFilter('all')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'all' ? 'bg-[#00bfff] text-black border-[#00bfff]' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setStatusFilter('ready')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'ready' ? 'bg-emerald-500 text-white border-emerald-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
-              >
-                Ready
-              </button>
-              <button
-                onClick={() => setStatusFilter('partial')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'partial' ? 'bg-sky-500 text-white border-sky-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
-              >
-                Partial
-              </button>
-              <button
-                onClick={() => setStatusFilter('awaiting')}
-                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'awaiting' ? 'bg-yellow-500 text-white border-yellow-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
-              >
-                Awaiting
-              </button>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'all' ? 'bg-[#00bfff] text-black border-[#00bfff]' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setStatusFilter('ready')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'ready' ? 'bg-emerald-500 text-white border-emerald-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+                >
+                  Ready
+                </button>
+                <button
+                  onClick={() => setStatusFilter('partial')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'partial' ? 'bg-sky-500 text-white border-sky-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+                >
+                  Partial
+                </button>
+                <button
+                  onClick={() => setStatusFilter('awaiting')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${statusFilter === 'awaiting' ? 'bg-yellow-500 text-white border-yellow-500' : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#25383f] hover:bg-slate-50 dark:hover:bg-[#0f1e23]'}`}
+                >
+                  Awaiting
+                </button>
               </div>
             </div>
 
@@ -133,16 +131,15 @@ const OrderHistory = () => {
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                            order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                            order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                            order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                            'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                          }`}>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                              order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                                order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                  'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                            }`}>
                             {order.status === 'Pending' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>}
                             {order.status === 'Processing' && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>}
                             {order.status === 'Delivered' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
-                          {order.status}
+                            {order.status}
                           </span>
                           {order.delivery?.details && order.delivery.details.trim().length > 0 && (order.status === 'Delivered' || order.status === 'Completed') && (
                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
@@ -162,7 +159,7 @@ const OrderHistory = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <button 
+                        <button
                           onClick={() => setSelectedOrder(order)}
                           className="inline-flex items-center gap-1 text-sm font-medium text-[#00bfff] hover:text-[#00bfff]/80 transition-colors"
                         >
@@ -216,12 +213,11 @@ const OrderHistory = () => {
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                        order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                        'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                      }`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                          order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                            order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                              'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        }`}>
                         {order.status}
                       </span>
                       {order.delivery?.details && order.delivery.details.trim().length > 0 && (order.status === 'Delivered' || order.status === 'Completed') && (
@@ -245,7 +241,7 @@ const OrderHistory = () => {
                     <span className="text-sm font-medium text-slate-900 dark:text-white">
                       ₦{order.total}
                     </span>
-                    <button 
+                    <button
                       onClick={() => setSelectedOrder(order)}
                       className="inline-flex items-center gap-1 text-sm font-medium text-[#00bfff] hover:text-[#00bfff]/80 transition-colors bg-[#00bfff]/10 px-3 py-1.5 rounded-lg"
                     >
@@ -256,9 +252,9 @@ const OrderHistory = () => {
                 </div>
               ))}
               {filteredOrders.length === 0 && (
-                 <div className="py-8 text-center text-slate-500">
-                    No orders found.
-                 </div>
+                <div className="py-8 text-center text-slate-500">
+                  No orders found.
+                </div>
               )}
             </div>
 
@@ -286,7 +282,7 @@ const OrderHistory = () => {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Order Details</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">ID: #{selectedOrder.id}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedOrder(null)}
                 className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-[#0f1e23] text-slate-500 dark:text-slate-400 transition-colors"
               >
@@ -297,27 +293,25 @@ const OrderHistory = () => {
             {/* Modal Content */}
             <div className="p-4 md:p-6 overflow-y-auto">
               {/* Status Banner */}
-              <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                selectedOrder.status === 'Processing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' :
-                selectedOrder.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
-                'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-              }`}>
-                <div className={`p-2 rounded-full ${
-                  selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/20' :
-                  selectedOrder.status === 'Processing' ? 'bg-sky-500/20' :
-                  selectedOrder.status === 'Pending' ? 'bg-yellow-500/20' :
-                  'bg-rose-500/20'
+              <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                  selectedOrder.status === 'Processing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' :
+                    selectedOrder.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
+                      'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                 }`}>
-                   {/* Icon based on status */}
-                   <div className="w-5 h-5 rounded-full border-2 border-current" />
+                <div className={`p-2 rounded-full ${selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/20' :
+                    selectedOrder.status === 'Processing' ? 'bg-sky-500/20' :
+                      selectedOrder.status === 'Pending' ? 'bg-yellow-500/20' :
+                        'bg-rose-500/20'
+                  }`}>
+                  {/* Icon based on status */}
+                  <div className="w-5 h-5 rounded-full border-2 border-current" />
                 </div>
                 <div>
                   <p className="font-semibold text-sm uppercase tracking-wide">Order {selectedOrder.status}</p>
                   <p className="text-sm opacity-90">
-                    {selectedOrder.status === 'Delivered' ? 'Your order has been delivered successfully.' : 
-                     selectedOrder.status === 'Processing' ? 'We are currently processing your order.' :
-                     'We have received your order.'}
+                    {selectedOrder.status === 'Delivered' ? 'Your order has been delivered successfully.' :
+                      selectedOrder.status === 'Processing' ? 'We are currently processing your order.' :
+                        'We have received your order.'}
                   </p>
                 </div>
               </div>
@@ -332,7 +326,7 @@ const OrderHistory = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">Payment Summary</h4>
-                   <div className="bg-slate-50 dark:bg-[#0f1e23] p-4 rounded-xl border border-slate-200 dark:border-[#25383f]">
+                  <div className="bg-slate-50 dark:bg-[#0f1e23] p-4 rounded-xl border border-slate-200 dark:border-[#25383f]">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm text-slate-500 dark:text-slate-400">Subtotal</span>
                       <span className="text-sm font-medium text-slate-900 dark:text-white">₦{selectedOrder.total}</span>
@@ -353,19 +347,19 @@ const OrderHistory = () => {
               <div>
                 <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Order Items</h4>
                 <div className="bg-slate-50 dark:bg-[#0f1e23] rounded-xl border border-slate-200 dark:border-[#25383f] overflow-hidden">
-                   <div className="p-4 flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-200 dark:bg-[#16252b] rounded-lg flex items-center justify-center text-slate-400">
-                        <Package size={24} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-900 dark:text-white">Digital Product Items</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Quantity: {selectedOrder.items?.length || 0}</p>
-                      </div>
-                      <p className="font-medium text-slate-900 dark:text-white">₦{selectedOrder.total}</p>
-                   </div>
+                  <div className="p-4 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-200 dark:bg-[#16252b] rounded-lg flex items-center justify-center text-slate-400">
+                      <Package size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900 dark:text-white">Digital Product Items</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Quantity: {selectedOrder.items?.length || 0}</p>
+                    </div>
+                    <p className="font-medium text-slate-900 dark:text-white">₦{selectedOrder.total}</p>
+                  </div>
                 </div>
               </div>
-              
+
               {/* Delivery Details */}
               {selectedOrder.delivery?.details && (
                 <div className="mt-6">
@@ -416,15 +410,15 @@ const OrderHistory = () => {
 
             {/* Modal Footer */}
             <div className="p-4 md:p-6 border-t border-slate-200 dark:border-[#25383f] bg-slate-50 dark:bg-[#0f1e23] flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setSelectedOrder(null)}
                 className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 Close
               </button>
-                  <a href="/contact" className="px-4 py-2 text-sm font-medium rounded-lg border border-[#27353a] text-slate-600 dark:text-slate-300 hover:text-white">
-                    Contact Support
-                  </a>
+              <a href="/contact" className="px-4 py-2 text-sm font-medium rounded-lg border border-[#27353a] text-slate-600 dark:text-slate-300 hover:text-white">
+                Contact Support
+              </a>
               <button className="px-4 py-2 bg-[#00bfff] hover:bg-[#00bfff]/90 text-white text-sm font-medium rounded-lg shadow-lg shadow-[#00bfff]/20 transition-all">
                 Download Invoice
               </button>

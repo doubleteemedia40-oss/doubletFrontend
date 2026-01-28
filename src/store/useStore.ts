@@ -453,9 +453,14 @@ export const useStore = create<Store>()(
         try {
           const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
           const token = get().token;
+          const user = get().user;
           const params = new URLSearchParams();
-          params.set('limit', String(typeof limit === 'number' ? limit : 20));
+          params.set('limit', String(typeof limit === 'number' ? limit : 100)); // Increased default from 20 to 100
           if (cursor) params.set('afterDate', cursor);
+          // Non-admin users should only fetch their own orders
+          if (user && !user.isAdmin) {
+            params.set('userId', user.id);
+          }
           const res = await fetch(`${base}/api/orders?${params.toString()}`, {
             headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
           });
