@@ -19,24 +19,24 @@ const HomePage = () => {
   useEffect(() => {
     // Hero animations
     const heroTimeline = gsap.timeline();
-    
+
     heroTimeline.fromTo(
       '.hero-title',
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
     )
-    .fromTo(
-      '.hero-subtitle',
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
-      '-=0.6'
-    )
-    .fromTo(
-      '.hero-buttons',
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
-      '-=0.6'
-    );
+      .fromTo(
+        '.hero-subtitle',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
+        '-=0.6'
+      )
+      .fromTo(
+        '.hero-buttons',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' },
+        '-=0.6'
+      );
 
     // Feature cards scroll animation
     const featureEls = gsap.utils.toArray('.feature-card') as Element[];
@@ -118,17 +118,17 @@ const HomePage = () => {
         <div className="absolute inset-0 overflow-hidden">
           {/* Top-left animated cyan orb */}
           <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full blur-3xl opacity-30 animate-hue"></div>
-          
+
           {/* Bottom-right animated magenta orb */}
           <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-gradient-to-tl from-purple-500 to-pink-500 rounded-full blur-3xl opacity-30 animate-hue" style={{ animationDelay: '2s' }}></div>
-          
+
           {/* Center animated gradient */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-b from-cyan-500/50 via-purple-500/30 to-pink-500/50 rounded-full blur-3xl opacity-20 animate-gradient-bg"></div>
         </div>
 
         {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 pointer-events-none"></div>
-        
+
         {/* Hero Content */}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center">
@@ -165,7 +165,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      
+
 
       {/* Categories Section */}
       <section className="mt-4 sm:mt-6 py-12 transition-colors duration-300">
@@ -182,56 +182,56 @@ const HomePage = () => {
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {/* Facebook */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=Facebook" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src="https://www.facebook.com/images/fb_icon_325x325.png" alt="Facebook" className="w-14 h-14 object-contain" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">Facebook</span>
-            </button>
+            </Link>
 
             {/* Instagram */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=Instagram" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram" className="w-14 h-14 object-contain" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">Instagram</span>
-            </button>
+            </Link>
 
             {/* TikTok */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=TikTok" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src="https://www.tiktok.com/favicon.ico" alt="TikTok" className="w-14 h-14 object-contain rounded" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">TikTok</span>
-            </button>
+            </Link>
 
             {/* Twitter/X */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=Twitter" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src="https://www.x.com/favicon.ico" alt="Twitter X" className="w-14 h-14 object-contain rounded" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">Twitter</span>
-            </button>
+            </Link>
 
             {/* VPN */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=VPN" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src={vpnLogo} alt="VPN" className="w-14 h-14 object-contain" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">VPN</span>
-            </button>
+            </Link>
 
             {/* LOGS */}
-            <button className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300">
+            <Link to="/products?category=LOGS" className="category-card flex flex-col items-center gap-3 rounded-xl border border-gray-300 dark:border-[#27353a] bg-white dark:bg-[#161b1d] p-6 text-center transition-all duration-300 hover:border-[#00bfff] hover:shadow-lg hover:shadow-[#00bfff]/20 hover:scale-105">
               <div className="flex size-16 items-center justify-center">
                 <img src={logsLogo} alt="Logs" className="w-14 h-14 object-contain" />
               </div>
               <span className="text-sm font-semibold text-gray-900 dark:text-white">LOGS</span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
-      
+
 
       {/* Featured Products Section */}
       <section className="bg-gray-100 dark:bg-[#0a0a0a]/30 py-16 border-t border-gray-200 dark:border-[#27353a] transition-colors duration-300">
@@ -271,7 +271,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      
+
       <section className="border-t border-gray-200 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] py-12 transition-colors duration-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from '../components/ProductCard';
@@ -9,11 +10,21 @@ gsap.registerPlugin(ScrollTrigger);
 
 const ProductListing = () => {
   const { products, loadMoreProducts } = useStore();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category') || 'all';
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl);
   const [searchTerm, setSearchTerm] = useState('');
   const productsContainerRef = useRef(null);
 
   const categories = ['all', 'Facebook', 'Instagram', 'TikTok', 'Twitter', 'VPN', 'LOGS'];
+
+  // Update selected category when URL changes
+  useEffect(() => {
+    const urlCategory = searchParams.get('category');
+    if (urlCategory && categories.includes(urlCategory)) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [searchParams]);
 
   const filteredProducts = products.filter((product) => {
     const matchCategory = selectedCategory === 'all' || product.category === selectedCategory;
@@ -81,11 +92,10 @@ const ProductListing = () => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all capitalize transition-colors duration-300 ${
-                selectedCategory === cat
+              className={`px-4 py-2 rounded-lg font-medium transition-all capitalize transition-colors duration-300 ${selectedCategory === cat
                   ? 'bg-[#00bfff] text-black dark:bg-[#00bfff] dark:text-black'
                   : 'border border-gray-300 dark:border-[#27353a] text-gray-600 dark:text-gray-400 hover:border-[#00bfff] dark:hover:border-[#00bfff] hover:text-[#00bfff] dark:hover:text-[#00bfff]'
-              }`}
+                }`}
             >
               {cat}
             </button>
