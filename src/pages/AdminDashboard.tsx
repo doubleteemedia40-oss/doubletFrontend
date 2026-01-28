@@ -11,7 +11,11 @@ const AdminDashboard = () => {
   const { products, orders, user, fetchProducts } = useStore();
   const toast = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
-  const [systemStatus, setSystemStatus] = useState<{ flutterwaveConfigured: boolean; backendConnected: boolean; maintenance: boolean } | null>(null);
+  const [systemStatus, setSystemStatus] = useState<{ flutterwaveConfigured: boolean; backendConnected: boolean; maintenance: boolean }>({
+    flutterwaveConfigured: false,
+    backendConnected: false,
+    maintenance: false
+  });
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleSeed = async () => {
@@ -40,9 +44,16 @@ const AdminDashboard = () => {
   useEffect(() => {
     const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
     fetch(`${base}/api/health`)
-      .then(res => res.json())
-      .then(data => setSystemStatus(data.config))
-      .catch(() => setSystemStatus(null));
+      .then(res => {
+        if (!res.ok) throw new Error('API not responding');
+        return res.json();
+      })
+      .then(data => setSystemStatus(data.config || { flutterwaveConfigured: false, backendConnected: true, maintenance: false }))
+      .catch((err) => {
+        console.error('Failed to fetch system status:', err);
+        // If fetch fails, backend is disconnected
+        setSystemStatus({ flutterwaveConfigured: false, backendConnected: false, maintenance: false });
+      });
   }, []);
 
   useEffect(() => {
@@ -161,29 +172,29 @@ const AdminDashboard = () => {
               <h2 className="text-lg font-bold text-white">System Status</h2>
               <button
                 onClick={toggleMaintenance}
-                disabled={isUpdating || !systemStatus}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors border ${systemStatus?.maintenance ? 'bg-yellow-500 text-black border-yellow-500' : 'bg-emerald-500 text-black border-emerald-500'}`}
+                disabled={isUpdating || !systemStatus.backendConnected}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors border ${systemStatus.maintenance ? 'bg-yellow-500 text-black border-yellow-500 hover:bg-yellow-600' : 'bg-emerald-500 text-black border-emerald-500 hover:bg-emerald-600'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isUpdating ? 'Updating...' : (systemStatus?.maintenance ? 'Disable Maintenance' : 'Enable Maintenance')}
+                {isUpdating ? 'Updating...' : (systemStatus.maintenance ? 'Disable Maintenance' : 'Enable Maintenance')}
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
                 <p className="text-slate-400 text-xs">Flutterwave</p>
-                <p className={`text-sm font-bold ${systemStatus?.flutterwaveConfigured ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {systemStatus?.flutterwaveConfigured ? 'Configured' : 'Missing'}
+                <p className={`text-sm font-bold ${systemStatus.flutterwaveConfigured ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {systemStatus.flutterwaveConfigured ? 'Configured' : 'Missing'}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
                 <p className="text-slate-400 text-xs">Backend API</p>
-                <p className={`text-sm font-bold ${systemStatus?.backendConnected ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {systemStatus?.backendConnected ? 'Connected' : 'Disconnected'}
+                <p className={`text-sm font-bold ${systemStatus.backendConnected ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {systemStatus.backendConnected ? 'Connected' : 'Disconnected'}
                 </p>
               </div>
               <div className="p-4 rounded-lg border border-[#27353a] bg-[#0f1e23]">
                 <p className="text-slate-400 text-xs">Maintenance Mode</p>
-                <p className={`text-sm font-bold ${systemStatus?.maintenance ? 'text-yellow-400' : 'text-emerald-400'}`}>
-                  {systemStatus?.maintenance ? 'Enabled' : 'Disabled'}
+                <p className={`text-sm font-bold ${systemStatus.maintenance ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                  {systemStatus.maintenance ? 'Enabled' : 'Disabled'}
                 </p>
               </div>
             </div>
