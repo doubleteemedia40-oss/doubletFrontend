@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useToast } from '../context/useToast';
-import PaystackLogo from '../components/PaystackLogo';
+import FlutterwaveLogo from '../components/FlutterwaveLogo';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const Checkout = () => {
   const toast = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmRef, setConfirmRef] = useState<string>('');
-  const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
+  const flutterwaveKey = import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY || '';
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -37,10 +37,10 @@ const Checkout = () => {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       if (paymentMethod === 'card') {
-        if (!paystackKey) {
+        if (!flutterwaveKey) {
           toast.error('Payment configuration missing');
           setIsLoading(false);
           return;
@@ -68,10 +68,10 @@ const Checkout = () => {
           setIsLoading(false);
           return;
         }
-        const res = await fetch(`${API_BASE}/api/payments/paystack/initiate`, {
+        const res = await fetch(`${API_BASE}/api/payments/flutterwave/initiate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({ amount: Math.round(total * 100), email: formData.email, reference, metadata: { customer: formData.fullName } }),
+          body: JSON.stringify({ amount: total, email: formData.email, reference, metadata: { customer: formData.fullName } }),
         });
         if (!res.ok) {
           let err: Record<string, unknown> | undefined;
@@ -80,19 +80,13 @@ const Checkout = () => {
           toast.error(msg);
           const details = err && (err as Record<string, unknown>).details as Record<string, unknown> | undefined;
           if (details) {
-            console.warn('Paystack error details:', details);
-            const code = (details as Record<string, unknown>)?.code as string | undefined;
-            const meta = (details as Record<string, unknown>)?.meta as Record<string, unknown> | undefined;
-            if (code === 'disabled_merchant') {
-              const next = (meta?.nextStep as string | undefined) || 'Merchant may be inactive. Please contact Paystack support.';
-              toast.info(next, { position: 'top-right', duration: 6000 });
-            }
+            console.warn('Flutterwave error details:', details);
           }
           setIsLoading(false);
           return;
         }
         const data = await res.json();
-        const url = data?.data?.authorization_url;
+        const url = data?.data?.link;
         if (!url) {
           toast.error('Payment provider error');
           setIsLoading(false);
@@ -151,45 +145,45 @@ const Checkout = () => {
               <div className="border border-gray-300 dark:border-[#27353a] rounded-lg p-6 bg-gray-50 dark:bg-[#161b1d] transition-colors duration-300">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Billing Information</h2>
                 <div className="space-y-4">
-                  <Input 
-                    label="Full Name" 
+                  <Input
+                    label="Full Name"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    placeholder="John Doe" 
+                    placeholder="John Doe"
                     required
                     readOnly={!!user}
                     helperText={user ? 'Auto-filled from your account' : undefined}
                   />
-                  <Input 
-                    label="Email Address" 
-                    type="email" 
+                  <Input
+                    label="Email Address"
+                    type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="john@example.com" 
+                    placeholder="john@example.com"
                     required
                     readOnly={!!user}
                     helperText={user ? 'Auto-filled from your account' : undefined}
                   />
-                  <Input 
-                    label="Phone Number" 
-                    type="tel" 
+                  <Input
+                    label="Phone Number"
+                    type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+1234567890" 
-                    required 
+                    placeholder="+1234567890"
+                    required
                   />
-                  <Input 
-                    label="Address" 
+                  <Input
+                    label="Address"
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    placeholder="123 Main Street" 
-                    required 
+                    placeholder="123 Main Street"
+                    required
                   />
-                  
+
                 </div>
               </div>
 
@@ -200,9 +194,9 @@ const Checkout = () => {
                   className="flex items-center justify-between p-4 rounded-lg border border-[#27353a] bg-[#0f1e23] hover:border-[#00bfff] transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <PaystackLogo className="h-6 w-auto" />
+                    <FlutterwaveLogo className="h-6 w-auto" />
                     <div className="flex flex-col">
-                      <span className="text-white font-bold tracking-wide">Paystack</span>
+                      <span className="text-white font-bold tracking-wide">Flutterwave</span>
                       <span className="text-slate-300 text-xs">Secure Card Payment</span>
                     </div>
                   </div>
@@ -211,9 +205,9 @@ const Checkout = () => {
 
                 {paymentMethod === 'card' && (
                   <div className="mt-6 space-y-2 p-4 bg-[#0f1e23] border border-[#27353a] rounded-lg text-sm text-slate-300">
-                    <p>You will be redirected via Paystack to complete your secure card payment.</p>
-                    {!paystackKey && (
-                      <p className="text-red-400">Paystack public key is not configured.</p>
+                    <p>You will be redirected via Flutterwave to complete your secure card payment.</p>
+                    {!flutterwaveKey && (
+                      <p className="text-red-400">Flutterwave public key is not configured.</p>
                     )}
                   </div>
                 )}
@@ -237,11 +231,11 @@ const Checkout = () => {
             <div className="space-y-4 mb-6 border-b border-gray-300 dark:border-[#27353a] pb-6 max-h-96 overflow-y-auto">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {item.name} <span className="text-[#00bfff]">x{item.quantity}</span>
-                    </span>
-                    <span className="text-gray-900 dark:text-white font-medium">₦{(item.price * item.quantity).toLocaleString()}</span>
-                  </div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {item.name} <span className="text-[#00bfff]">x{item.quantity}</span>
+                  </span>
+                  <span className="text-gray-900 dark:text-white font-medium">₦{(item.price * item.quantity).toLocaleString()}</span>
+                </div>
               ))}
             </div>
 

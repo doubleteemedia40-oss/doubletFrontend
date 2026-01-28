@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/useTheme';
 import { useStore } from '../store/useStore';
-import { ShoppingCart, Moon, Sun, Menu, X, ChevronRight, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Moon, Sun, Menu, X, ChevronRight, ExternalLink, LayoutDashboard } from 'lucide-react';
 
 const Navbar = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -93,10 +93,10 @@ const Navbar = () => {
             <div className="flex md:hidden items-center gap-2">
               <Link
                 to={user.isAdmin ? '/admin/dashboard' : '/order-history'}
-                className="flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-3 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff] text-sm font-medium"
+                className="flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-3 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
                 title="Dashboard"
               >
-                Dashboard
+                <LayoutDashboard size={18} />
               </Link>
               <button
                 onClick={logout}
@@ -121,10 +121,10 @@ const Navbar = () => {
             <div className="hidden sm:flex items-center gap-2">
               <Link
                 to={user.isAdmin ? '/admin/dashboard' : '/order-history'}
-                className="flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-4 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff] text-sm font-medium"
+                className="flex items-center justify-center rounded-lg border border-gray-300 dark:border-[#27353a] bg-gray-50 dark:bg-[#161b1d] px-4 h-10 text-gray-700 dark:text-[#9ca3af] hover:border-[#00bfff] hover:text-[#00bfff]"
                 title="Dashboard"
               >
-                Dashboard
+                <LayoutDashboard size={18} />
               </Link>
               <button
                 onClick={logout}
