@@ -666,20 +666,22 @@ export const useStore = create<Store>()(
           const base = import.meta.env.VITE_API_URL || 'http://localhost:4000';
           const token = get().token;
 
-          console.log('🔍 Creating order:', {
-            endpoint: `${base}/api/orders`,
-            hasToken: !!token,
-            tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
-            orderData: {
-              userId: orderData.userId,
-              customer: orderData.customer,
-              email: orderData.email,
-              itemsCount: orderData.items?.length,
-              total: orderData.total,
-              status: orderData.status,
-              reference: orderData.reference
-            }
-          });
+          if (import.meta.env.DEV) {
+            console.log('🔍 Creating order:', {
+              endpoint: `${base}/api/orders`,
+              hasToken: !!token,
+              tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
+              orderData: {
+                userId: orderData.userId,
+                customer: orderData.customer,
+                email: orderData.email,
+                itemsCount: orderData.items?.length,
+                total: orderData.total,
+                status: orderData.status,
+                reference: orderData.reference
+              }
+            });
+          }
 
           const res = await fetch(`${base}/api/orders`, {
             method: 'POST',
@@ -706,7 +708,9 @@ export const useStore = create<Store>()(
           }
 
           const created = await res.json();
-          console.log('✅ Order created successfully:', created);
+          if (import.meta.env.DEV) {
+            console.log('✅ Order created successfully:', created);
+          }
           set((state) => ({ orders: [created, ...state.orders] }));
         } catch (error) {
           console.error('❌ Exception in createOrder:', error);
