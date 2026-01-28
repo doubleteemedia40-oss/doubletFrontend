@@ -70,13 +70,14 @@ const AdminDashboard = () => {
       const res = await fetch(`${base}/api/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ maintenance: !(systemStatus?.maintenance) }),
+        body: JSON.stringify({ maintenance: !systemStatus.maintenance }),
       });
       if (!res.ok) throw new Error('Failed to update config');
       const data = await res.json();
       setSystemStatus(data.config);
       toast.success(`Maintenance ${data.config.maintenance ? 'enabled' : 'disabled'}`);
-    } catch {
+    } catch (err) {
+      console.error('Maintenance toggle error:', err);
       toast.error('Failed to update maintenance');
     } finally {
       setIsUpdating(false);
