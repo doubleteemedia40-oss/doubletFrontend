@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import UserSidebar from '../components/UserSidebar';
 import { Search, ChevronRight, X, Eye, Package } from 'lucide-react';
@@ -6,12 +6,19 @@ import type { Order } from '../store/useStore';
 import { useToast } from '../context/useToast';
 
 const OrderHistory = () => {
-  const { orders, user, loadMoreUserOrders } = useStore();
+  const { orders, user, loadMoreUserOrders, fetchOrders } = useStore();
   const toast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'ready' | 'partial' | 'awaiting'>('all');
+
+  // Fetch orders when component mounts
+  useEffect(() => {
+    if (user && orders.length === 0) {
+      fetchOrders();
+    }
+  }, [user, fetchOrders]);
 
   // Filter orders for the current user
   // Backend already filters by userId for non-admin users, but we filter here too for safety
@@ -132,9 +139,9 @@ const OrderHistory = () => {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                              order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                                order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                                  'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                            order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                              order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                'bg-rose-500/10 text-rose-500 border-rose-500/20'
                             }`}>
                             {order.status === 'Pending' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>}
                             {order.status === 'Processing' && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>}
@@ -214,9 +221,9 @@ const OrderHistory = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'Delivered' || order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                          order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
-                            order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                              'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        order.status === 'Processing' ? 'bg-sky-500/10 text-sky-500 border-sky-500/20' :
+                          order.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                            'bg-rose-500/10 text-rose-500 border-rose-500/20'
                         }`}>
                         {order.status}
                       </span>
@@ -294,14 +301,14 @@ const OrderHistory = () => {
             <div className="p-4 md:p-6 overflow-y-auto">
               {/* Status Banner */}
               <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                  selectedOrder.status === 'Processing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' :
-                    selectedOrder.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
-                      'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                selectedOrder.status === 'Processing' ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' :
+                  selectedOrder.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
+                    'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                 }`}>
                 <div className={`p-2 rounded-full ${selectedOrder.status === 'Delivered' || selectedOrder.status === 'Completed' ? 'bg-emerald-500/20' :
-                    selectedOrder.status === 'Processing' ? 'bg-sky-500/20' :
-                      selectedOrder.status === 'Pending' ? 'bg-yellow-500/20' :
-                        'bg-rose-500/20'
+                  selectedOrder.status === 'Processing' ? 'bg-sky-500/20' :
+                    selectedOrder.status === 'Pending' ? 'bg-yellow-500/20' :
+                      'bg-rose-500/20'
                   }`}>
                   {/* Icon based on status */}
                   <div className="w-5 h-5 rounded-full border-2 border-current" />
